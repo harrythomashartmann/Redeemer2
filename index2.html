@@ -1,0 +1,338 @@
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Redeemer</title>
+
+<style>
+body{
+    font-family:Arial,sans-serif;
+    background:#f4f6f8;
+    margin:0;
+    padding:20px;
+}
+
+.container{
+    max-width:700px;
+    margin:auto;
+    background:#102334;
+    color:white;
+    padding:20px;
+    border-radius:12px;
+}
+
+h1{
+    margin-top:0;
+}
+
+select,input,button{
+    padding:10px;
+    margin:5px 0;
+    font-size:16px;
+}
+
+input{
+    width:100%;
+    box-sizing:border-box;
+}
+
+.controls{
+    display:flex;
+    gap:5px;
+}
+
+.controls input{
+    flex:1;
+}
+
+button{
+    cursor:pointer;
+}
+
+.balance{
+    font-size:32px;
+    font-weight:bold;
+    margin:20px 0;
+}
+
+.history{
+    background:white;
+    color:black;
+    border-radius:8px;
+    padding:10px;
+    min-height:250px;
+}
+
+.history-item{
+    padding:8px;
+    border-bottom:1px solid #ddd;
+}
+
+.positive{
+    color:green;
+}
+
+.negative{
+    color:red;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>Redeemer</h1>
+
+<select id="userSelect"></select>
+
+<br>
+
+<button onclick="addUser()">
++ Add User
+</button>
+
+<div class="balance" id="balance">
+0 Points
+</div>
+
+<div class="controls">
+<input
+    id="amount"
+    type="number"
+    placeholder="Enter points"
+>
+<button onclick="earn()">
+Earn
+</button>
+<button onclick="spend()">
+Spend
+</button>
+</div>
+
+<h3>History</h3>
+
+<div
+    class="history"
+    id="history"
+></div>
+
+</div>
+
+<script>
+
+let users =
+JSON.parse(
+localStorage.getItem("users")
+) || {
+    Alice:{
+        points:0,
+        history:[]
+    },
+    Bob:{
+        points:0,
+        history:[]
+    }
+};
+
+let currentUser =
+localStorage.getItem("currentUser")
+|| Object.keys(users)[0];
+
+function saveData(){
+    localStorage.setItem(
+        "users",
+        JSON.stringify(users)
+    );
+
+    localStorage.setItem(
+        "currentUser",
+        currentUser
+    );
+}
+
+function updateUI(){
+
+    const select =
+    document.getElementById(
+        "userSelect"
+    );
+
+    select.innerHTML="";
+
+    Object.keys(users).forEach(
+    name=>{
+
+        const option =
+        document.createElement(
+            "option"
+        );
+
+        option.value=name;
+        option.textContent=name;
+
+        if(name===currentUser){
+            option.selected=true;
+        }
+
+        select.appendChild(option);
+    });
+
+    document
+    .getElementById("balance")
+    .textContent=
+    users[currentUser].points+
+    " Points";
+
+    const history =
+    document.getElementById(
+        "history"
+    );
+
+    history.innerHTML="";
+
+    [...users[currentUser].history]
+    .reverse()
+    .forEach(item=>{
+
+        const div =
+        document.createElement(
+            "div"
+        );
+
+        div.className=
+        "history-item "+
+        item.type;
+
+        div.textContent=
+        item.text;
+
+        history.appendChild(div);
+    });
+
+    saveData();
+}
+
+function earn(){
+
+    const amount =
+    parseInt(
+    document.getElementById(
+        "amount"
+    ).value);
+
+    if(
+        isNaN(amount)
+        || amount<=0
+    ){
+        return;
+    }
+
+    users[currentUser]
+    .points += amount;
+
+    users[currentUser]
+    .history.push({
+        text:"+ "+amount+
+        " points",
+        type:"positive"
+    });
+
+    document
+    .getElementById(
+        "amount"
+    ).value="";
+
+    updateUI();
+}
+
+function spend(){
+
+    const amount =
+    parseInt(
+    document.getElementById(
+        "amount"
+    ).value);
+
+    if(
+        isNaN(amount)
+        || amount<=0
+    ){
+        return;
+    }
+
+    if(
+        amount >
+        users[currentUser]
+        .points
+    ){
+        alert(
+        "Not enough points."
+        );
+        return;
+    }
+
+    users[currentUser]
+    .points -= amount;
+
+    users[currentUser]
+    .history.push({
+        text:"- "+amount+
+        " points",
+        type:"negative"
+    });
+
+    document
+    .getElementById(
+        "amount"
+    ).value="";
+
+    updateUI();
+}
+
+function addUser(){
+
+    const name =
+    prompt(
+    "Enter new person's name:"
+    );
+
+    if(
+        !name ||
+        users[name]
+    ){
+        return;
+    }
+
+    users[name]={
+        points:0,
+        history:[]
+    };
+
+    currentUser=name;
+
+    updateUI();
+}
+
+document
+.getElementById(
+"userSelect"
+)
+.addEventListener(
+"change",
+function(){
+    currentUser=
+    this.value;
+
+    updateUI();
+}
+);
+
+updateUI();
+
+</script>
+
+</body>
+</html>
+```
